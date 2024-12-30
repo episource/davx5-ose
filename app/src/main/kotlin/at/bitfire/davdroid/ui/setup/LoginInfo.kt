@@ -15,5 +15,7 @@ data class LoginInfo(
     val suggestedAccountName: String? = null,
 
     /** group method that should be pre-selected */
-    val suggestedGroupMethod: GroupMethod = GroupMethod.GROUP_VCARDS
+    val suggestedGroupMethod: GroupMethod = GroupMethod.GROUP_VCARDS,
+
+    val discoveryEnabled: Boolean = true
 )

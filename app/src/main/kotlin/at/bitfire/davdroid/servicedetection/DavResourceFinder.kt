@@ -62,13 +62,14 @@ import java.util.logging.Logger
 class DavResourceFinder @AssistedInject constructor(
     @Assisted private val baseURI: URI,
     @Assisted private val credentials: Credentials? = null,
+    @Assisted private val discoveryEnabled: Boolean = true,
     @ApplicationContext val context: Context,
     private val dnsRecordResolver: DnsRecordResolver
 ): AutoCloseable {
 
     @AssistedFactory
     interface Factory {
-        fun create(baseURI: URI, credentials: Credentials?): DavResourceFinder
+        fun create(baseURI: URI, credentials: Credentials?, discoveryEnabled: Boolean = true): DavResourceFinder
     }
 
     enum class Service(val wellKnownName: String) {
@@ -171,7 +172,7 @@ class DavResourceFinder @AssistedInject constructor(
                     checkBaseURL(baseURL, service, config)
 
                     // If principal was not found already, try well known URI
-                    if (config.principal == null)
+                    if (discoveryEnabled && config.principal == null)
                         try {
                             config.principal = getCurrentUserPrincipal(baseURL.resolve("/.well-known/" + service.wellKnownName)!!, service)
                         } catch(e: Exception) {
@@ -188,7 +189,7 @@ class DavResourceFinder @AssistedInject constructor(
         }
 
         // Second try: If user-given URL didn't reveal a principal, search for it (SERVICE DISCOVERY)
-        if (config.principal == null)
+        if (discoveryEnabled && config.principal == null)
             discoveryFQDN?.let { fqdn ->
                 log.info("No principal found at user-given URL, trying to discover for domain $fqdn")
                 try {
@@ -230,22 +231,22 @@ class DavResourceFinder @AssistedInject constructor(
         try {
             when (service) {
                 Service.CARDDAV -> {
-                    davBaseURL.propfind(
-                        0,
-                        ResourceType.NAME, DisplayName.NAME, AddressbookDescription.NAME,
-                        AddressbookHomeSet.NAME,
-                        CurrentUserPrincipal.NAME
-                    ) { response, _ ->
+                    val properties = mutableListOf(ResourceType.NAME, DisplayName.NAME, AddressbookDescription.NAME);
+                    if (discoveryEnabled)
+                        properties += listOf(AddressbookHomeSet.NAME, CurrentUserPrincipal.NAME)
+
+                    davBaseURL.propfind(0, *properties.toTypedArray()) { response, _ ->
                         scanResponse(ResourceType.ADDRESSBOOK, response, config)
                     }
                 }
                 Service.CALDAV -> {
-                    davBaseURL.propfind(
-                        0,
-                        ResourceType.NAME, DisplayName.NAME, CalendarColor.NAME, CalendarDescription.NAME, CalendarTimezone.NAME, CurrentUserPrivilegeSet.NAME, SupportedCalendarComponentSet.NAME,
-                        CalendarHomeSet.NAME,
-                        CurrentUserPrincipal.NAME
-                    ) { response, _ ->
+                    val properties = mutableListOf(ResourceType.NAME, DisplayName.NAME, CalendarColor.NAME,
+                        CalendarDescription.NAME, CalendarTimezone.NAME, CurrentUserPrivilegeSet.NAME,
+                        SupportedCalendarComponentSet.NAME)
+                    if (discoveryEnabled)
+                        properties += listOf(CalendarHomeSet.NAME, CurrentUserPrincipal.NAME)
+
+                    davBaseURL.propfind(0, *properties.toTypedArray()) { response, _ ->
                         scanResponse(ResourceType.CALENDAR, response, config)
                     }
                 }

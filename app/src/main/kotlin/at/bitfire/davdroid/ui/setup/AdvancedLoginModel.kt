@@ -32,13 +32,14 @@ class AdvancedLoginModel @AssistedInject constructor(
         val password: String = "",
         val certAlias: String = ""
     ) {
+        val urlWithoutPrefix = url.trim().trimStart('!')
 
-        val urlWithPrefix =
-            if (url.startsWith("http://") || url.startsWith("https://"))
-                url
+        val urlWithScheme =
+            if (urlWithoutPrefix.startsWith("http://") || urlWithoutPrefix.startsWith("https://"))
+                urlWithoutPrefix
             else
-                "https://$url"
-        val uri = urlWithPrefix.toURIorNull()
+                "https://$urlWithoutPrefix"
+        val uri = urlWithScheme.toURIorNull()
 
         val canContinue = uri != null
 
@@ -48,7 +49,8 @@ class AdvancedLoginModel @AssistedInject constructor(
                 username = username.trimToNull(),
                 password = password.trimToNull(),
                 certificateAlias = certAlias.trimToNull()
-            )
+            ),
+            discoveryEnabled = !url.trim().startsWith("!")
         )
 
     }

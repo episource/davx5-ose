@@ -31,13 +31,14 @@ class UrlLoginModel @AssistedInject constructor(
         val username: String = "",
         val password: String = ""
     ) {
+        val urlWithoutPrefix = url.trim().trimStart('!')
 
-        val urlWithPrefix =
-            if (url.startsWith("http://") || url.startsWith("https://"))
-                url
+        val urlWithScheme =
+            if (urlWithoutPrefix.startsWith("http://") || urlWithoutPrefix.startsWith("https://"))
+                urlWithoutPrefix
             else
-                "https://$url"
-        val uri = urlWithPrefix.trim().toURIorNull()
+                "https://$urlWithoutPrefix"
+        val uri = urlWithScheme.toURIorNull()
 
         val canContinue = uri != null && username.isNotEmpty() && password.isNotEmpty()
 
@@ -47,7 +48,8 @@ class UrlLoginModel @AssistedInject constructor(
                 credentials = Credentials(
                     username = username.trimToNull(),
                     password = password.trimToNull()
-                )
+                ),
+                discoveryEnabled = !url.trim().startsWith("!")
             )
 
     }

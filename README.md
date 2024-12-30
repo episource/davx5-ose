@@ -1,3 +1,8 @@
+# About
+This is a modified variant of [DAVx⁵](https://github.com/bitfireAT/davx5-ose), with support to disable discovery for
+selected urls by prepending `!` to the URL. This can be useful to provide access to a specific resource only, without
+ability to enable other resources without re-entering credentials.
+
 
 [![Website](https://img.shields.io/website?style=flat-square&up_color=%237cb342&url=https%3A%2F%2Fwww.davx5.com)](https://www.davx5.com/)
 [![F-Droid](https://img.shields.io/f-droid/v/at.bitfire.davdroid?style=flat-square)](https://f-droid.org/packages/at.bitfire.davdroid/)
